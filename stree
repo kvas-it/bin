@@ -1,3 +1,9 @@
 #!/bin/sh
 
-open -a SourceTree .
+if [ x$1 == x ]; then
+    TARGET=.
+else
+    TARGET=$1
+fi
+
+open -a SourceTree $TARGET
