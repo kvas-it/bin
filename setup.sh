@@ -4,23 +4,13 @@ BIN=~/bin
 BASE=`dirname $0`
 BASE=`(cd $BASE; pwd)`
 
-contains() {
-    if [[ $1 =~ $2 ]]; then
-        return 0
-    else
-        return 1
-    fi
-}
-
-EXCEPTIONS="setup.sh aaa"
-
 cd $BASE
 
 for file in `ls`; do
     if [ ! -x $file ]; then
         continue
     fi
-    if contains "$EXCEPTIONS" $file; then
+    if [ "setup.sh" == $file ]; then
         continue
     fi
     if [ -e $BIN/$file ]; then
