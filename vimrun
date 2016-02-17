@@ -1,0 +1,33 @@
+#!/bin/sh
+
+if [ x$1 == x ]; then
+    echo "usage: vimrun FILE"
+    exit 1
+fi
+
+if [[ $1 =~ /* ]]; then
+    FILE_PATH=$1 # Absolute path
+else
+    FILE_PATH=`pwd`/$1 # Relative path
+fi
+
+FILE_NAME=`basename $FILE_PATH`
+FILE_TYPE=`file -b $FILE_PATH`
+
+echo "Running $FILE_PATH of type $FILE_TYPE"
+
+case "$FILE_TYPE" in
+    "a python script text executable")
+        if [[ $FILE_NAME =~ test_* ]]; then
+            pytest $FILE_PATH
+        else
+            python $FILE_PATH
+        fi
+        ;;
+    *)
+        if [ -x $FILE_PATH ]; then
+            $FILE_PATH
+        else
+            echo "Don't know how to run $FILE_PATH"
+        fi
+esac 
