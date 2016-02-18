@@ -12,21 +12,24 @@ else
 fi
 
 FILE_NAME=`basename $FILE_PATH`
-FILE_TYPE=`file -b $FILE_PATH`
+FILE_EXT=${FILE_NAME##*.}
 
-echo "Running $FILE_PATH of type $FILE_TYPE"
+run() {
+    echo \$ $*
+    $*
+}
 
-case "$FILE_TYPE" in
-    "a python script text executable")
+case "$FILE_EXT" in
+    "py")
         if [[ $FILE_NAME =~ test_* ]]; then
-            pytest $FILE_PATH
+            run pytest $FILE_PATH
         else
-            python $FILE_PATH
+            run python $FILE_PATH
         fi
         ;;
     *)
         if [ -x $FILE_PATH ]; then
-            $FILE_PATH
+            run $FILE_PATH
         else
             echo "Don't know how to run $FILE_PATH"
         fi
