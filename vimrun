@@ -27,6 +27,9 @@ case "$FILE_EXT" in
             run python $FILE_PATH
         fi
         ;;
+    "hs")
+        run runhaskell $FILE_PATH
+        ;;
     *)
         if [ -x $FILE_PATH ]; then
             run $FILE_PATH
