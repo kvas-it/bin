@@ -22,7 +22,12 @@ run() {
 case "$FILE_EXT" in
     "py")
         if [[ $FILE_NAME =~ test_* ]]; then
-            run pytest $FILE_PATH
+            if [[ -d __ ]]; then
+                PYTEST=__/bin/py.test
+            else
+                PYTEST=py.test
+            fi
+            run $PYTEST $FILE_PATH
         else
             run python $FILE_PATH
         fi
