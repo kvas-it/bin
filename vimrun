@@ -24,7 +24,9 @@ case "$FILE_EXT" in
         if [[ $FILE_NAME =~ test_* ]]; then
             if [[ -d __ ]]; then
                 PYTEST=__/bin/py.test
-            else
+	    elif [[ -d devenv ]]; then
+		PYTEST=devenv/bin/py.test
+	    else
                 PYTEST=py.test
             fi
             run $PYTEST $FILE_PATH
