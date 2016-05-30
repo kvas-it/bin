@@ -1,0 +1,13 @@
+#!/bin/bash
+
+SRCFILE="$1"
+TMPFILE="$TMPDIR/`basename $SRCFILE`"
+
+if [[ "$SRCFILE" =~ ^https?:// ]]
+then
+    curl "$SRCFILE" | patchconv >"$TMPFILE" || exit 1
+else
+    patchconv <"$SRCFILE" >"$TMPFILE" || exit 1
+fi
+
+hg import -m "Import patch from $SRCFILE" "$TMPFILE"
