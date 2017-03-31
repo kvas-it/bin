@@ -22,13 +22,37 @@ run() {
 case "$FILE_EXT" in
     "py")
         if [[ $FILE_NAME =~ test_* ]]; then
-            if [[ -d __ ]]; then
-                PYTEST=__/bin/pytest
-	    elif [[ -d devenv ]]; then
-		PYTEST=devenv/bin/pytest
+            if [[ -d .tox ]]; then  # We have some tox environments.
+                if [[ -d .tox/py35 ]]; then    # Prefer 3.5
+                    TOXENV=.tox/py35
+                elif [[ -d .tox/py27 ]]; then  # then 2.7
+                    TOXENV=.tox/py27
+                else                           # then whatever...
+                    TOXENV="$(ls -d .tox/py* | head -1)"
+                fi
+
+                PIP="$TOXENV/bin/pip"
+                PYTHON="$TOXENV/bin/python"
+
+                if [ -f setup.py ]; then
+                    name=$("$PYTHON" setup.py --name)
+                    echo "$PIP" show $name
+                    if "$PIP" freeze | grep "$name" | grep -q -v ==; then
+                        echo "$name already installed in dev mode"
+                    else
+                        echo "Installing $name in dev mode"
+                        "$PYTHON" setup.py -q develop
+                    fi
+                else
+                    export PYTHONPATH="$(pwd -P)"
+                    echo "Activated $env and set PYTHONPATH to $PYTHONPATH"
+                fi
+
+                PYTEST="$TOXENV/bin/pytest"
 	    else
                 PYTEST=pytest
             fi
+
             run $PYTEST $FILE_PATH
         else
             run python $FILE_PATH
