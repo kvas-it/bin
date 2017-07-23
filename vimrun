@@ -23,7 +23,9 @@ case "$FILE_EXT" in
     "py")
         if [[ $FILE_NAME =~ test_* ]]; then
             if [[ -d .tox ]]; then  # We have some tox environments.
-                if [[ -d .tox/py35 ]]; then    # Prefer 3.5
+		if [[ -d .tox/py36 ]]; then    # Prefer 3.6
+                    TOXENV=.tox/py36
+                elif [[ -d .tox/py35 ]]; then    # then 3.5
                     TOXENV=.tox/py35
                 elif [[ -d .tox/py27 ]]; then  # then 2.7
                     TOXENV=.tox/py27
@@ -36,11 +38,12 @@ case "$FILE_EXT" in
 
                 if [ -f setup.py ]; then
                     name=$("$PYTHON" setup.py --name)
-                    echo "$PIP" show $name
+                    echo "$PIP" show "$name"
                     if "$PIP" freeze | grep "$name" | grep -q -v ==; then
                         echo "$name already installed in dev mode"
                     else
                         echo "Installing $name in dev mode"
+			"$PIP" uninstall -y "$name"
                         "$PYTHON" setup.py -q develop
                     fi
                 else
@@ -61,6 +64,9 @@ case "$FILE_EXT" in
     "hs")
         run runhaskell $FILE_PATH
         ;;
+    "md")
+        md $FILE_PATH
+	;;
     *)
         if [ -x $FILE_PATH ]; then
             run $FILE_PATH
