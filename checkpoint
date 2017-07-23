@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# Quickly commit the changes in current repo (git) and push them to all
+# remotes. I use this script for notes repositories.
+
+git commit -a -m 'checkpoint'
+
+for remote in `git remote`
+do
+    echo "Pushing to $remote:"
+    git push $remote
+done

@@ -1,0 +1,107 @@
+#!/usr/bin/env python3
+
+"""Automatically generate or update a README.md for a directory of .md files"""
+
+import collections
+import glob
+import os
+
+
+ListItem = collections.namedtuple('ListItem', 'indent title path')
+
+
+def read_lines(path):
+    """Read the file and convert it to a list of lines"""
+    with open(path, 'rt', encoding='utf-8') as f:
+        return list(f)
+
+
+def write_lines(path, lines):
+    """Write list of lines to a file"""
+    with open(path, 'wt', encoding='utf-8') as f:
+        for line in lines:
+            if not line.endswith('\n'):
+                line += '\n'
+            f.write(line)
+
+
+def read_readme_pt(path):
+    """Read readme file and return its preamble and tail"""
+    lines = read_lines(path)
+    preamble, links, tail = [], [], []
+    for line in lines:
+        is_link = line.strip().startswith('- ')
+        if not links:
+            if is_link:
+                links.append(line)
+            else:
+                preamble.append(line)
+        elif not tail:
+            if is_link:
+                links.append(line)
+            else:
+                tail.append(line)
+        else:
+            tail.append(line)
+    return preamble, tail
+
+
+def make_md_item(base_path, path, level):
+    """Read title from a markdown file and make a link list item"""
+    lines = read_lines(path)
+    if len(lines) > 0 and lines[0].startswith('#'):
+        title = lines[0][1:].strip()
+    else:
+        title = os.path.basename(path)
+    return ListItem('    ' * level, title, os.path.relpath(path, base_path))
+
+
+def make_link_list(base_path, path, level=0):
+    """Make a list of link to .md files in `path` and its subdirectories
+
+    - `base_path` is the path to which the link will be relative.
+    - `level` is used for indenting link items and skipping the target README
+    """
+    if level > 0 and os.path.exists(os.path.join(path, '.git')):
+        return []  # Subrepo.
+
+    readme = os.path.join(path, 'README.md')
+    if level > 0 and os.path.exists(readme):
+        # When a subdirectory contains its own README.md, we update it...
+        update_readme(readme)
+        # ...and then just return a link to it (as a higher level link).
+        return [make_md_item(base_path, readme, level - 1)]
+
+    items = []
+    for item in sorted(glob.glob(os.path.join(path, '*'))):
+        if item.endswith('README.md'):
+            # This is the README.md that we're updating, skip it.
+            continue
+        if item.endswith('.md'):
+            items.append(make_md_item(base_path, item, level))
+        elif os.path.isdir(item):
+            items.extend(make_link_list(base_path, item, level + 1))
+
+    if items and level > 0:
+        dir_item = ListItem('    ' * (level - 1), os.path.basename(path), None)
+        items = [dir_item] + items
+
+    return items
+
+
+def format_list_item(item):
+    if item.path is None:
+        return '{0.indent}- {0.title}'.format(item)
+    return '{0.indent}- [{0.title}]({0.path})'.format(item)
+
+
+def update_readme(readme_path):
+    preamble, tail = read_readme_pt(readme_path)
+    base_path = os.path.dirname(readme_path)
+    link_list = [format_list_item(i)
+                 for i in make_link_list(base_path, base_path)]
+    write_lines(readme_path, preamble + link_list + tail)
+
+
+if __name__ == '__main__':
+    update_readme('./README.md')
