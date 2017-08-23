@@ -65,6 +65,18 @@ case "$FILE_EXT" in
     "hs")
         run runhaskell $FILE_PATH
         ;;
+    "rs")
+        dir=$(dirname "$FILE_PATH")
+        while [ ! -f "$dir/Cargo.toml" ]; do
+            dir=$(dirname "$dir")
+            if [ "$dir" == / ]; then
+                echo "Can't find Cargo.toml"
+                exit 1
+            fi
+        done
+        cd "$dir"
+        cargo run
+        ;;
     "md")
         md $FILE_PATH
 	;;
