@@ -5,6 +5,7 @@
 import collections
 import glob
 import os
+import sys
 
 
 ListItem = collections.namedtuple('ListItem', 'indent title path')
@@ -104,4 +105,11 @@ def update_readme(readme_path):
 
 
 if __name__ == '__main__':
-    update_readme('./README.md')
+    if len(sys.argv) > 1:
+        paths = sys.argv[1:]
+    else:
+        paths = ['.']
+
+    for path in paths:
+        print('Updating README.md in {} and subfolders'.format(path))
+        update_readme(os.path.join(path, 'README.md'))
