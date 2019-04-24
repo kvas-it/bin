@@ -77,8 +77,20 @@ case "$FILE_EXT" in
         cd "$dir"
         cargo run
         ;;
+    "clj")
+        CLJ_NS=`grep '^(ns ' "$FILE_PATH" | cut -d' ' -f2 | head -1`
+        if [ "$CLJ_NS" == "" ]; then
+            echo "Unable to determine namespace of $FILE_PATH"
+            exit 1
+        fi
+        if [[ "$CLJ_NS" =~ test$ ]]; then
+            run clj -A:test -n "$CLJ_NS"
+        else
+            run clj -m "$CLJ_NS"
+        fi
+        ;;
     "md")
-        md $FILE_PATH
+        grip -b $FILE_PATH
 	;;
     *)
         if [ -x $FILE_PATH ]; then
