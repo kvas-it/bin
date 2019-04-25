@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 BIN=~/bin
 BASE=`dirname $0`
