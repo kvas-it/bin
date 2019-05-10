@@ -23,7 +23,7 @@ case "$FILE_EXT" in
     "py")
         if [[ $FILE_NAME =~ test_* ]]; then
             if [[ -d .tox ]]; then  # We have some tox environments.
-		if [[ -d .tox/py36 ]]; then    # Prefer 3.6
+                if [[ -d .tox/py36 ]]; then    # Prefer 3.6
                     TOXENV=.tox/py36
                 elif [[ -d .tox/py35 ]]; then    # then 3.5
                     TOXENV=.tox/py35
@@ -43,7 +43,7 @@ case "$FILE_EXT" in
                         echo "$name already installed in dev mode"
                     else
                         echo "Installing $name in dev mode"
-			"$PIP" uninstall -y "$name"
+                        "$PIP" uninstall -y "$name"
                         "$PYTHON" setup.py -q develop
                     fi
                 else
@@ -52,11 +52,11 @@ case "$FILE_EXT" in
                 fi
 
                 PYTEST="$TOXENV/bin/pytest"
-	    else
+            else
                 PYTEST=pytest
             fi
 
-	    . "$TOXENV/bin/activate"
+            . "$TOXENV/bin/activate"
             run $PYTEST $FILE_PATH
         else
             run python $FILE_PATH
@@ -77,13 +77,13 @@ case "$FILE_EXT" in
         cd "$dir"
         cargo run
         ;;
-    "clj")
-        CLJ_NS=`grep '^(ns ' "$FILE_PATH" | cut -d' ' -f2 | head -1`
+    "clj" | "cljc")
+        CLJ_NS=`grep '^(ns ' "$FILE_PATH" | cut -d' ' -f2 | cut -d')' -f1 | head -1`
         if [ "$CLJ_NS" == "" ]; then
             echo "Unable to determine namespace of $FILE_PATH"
             exit 1
         fi
-        if [[ "$CLJ_NS" =~ test$ ]]; then
+        if [[ "$CLJ_NS" =~ -test$ ]]; then
             run clj -A:test -n "$CLJ_NS"
         else
             run clj -m "$CLJ_NS"
@@ -91,11 +91,11 @@ case "$FILE_EXT" in
         ;;
     "md")
         grip -b $FILE_PATH
-	;;
+        ;;
     *)
         if [ -x $FILE_PATH ]; then
             run $FILE_PATH
         else
             echo "Don't know how to run $FILE_PATH"
         fi
-esac 
+esac
