@@ -23,7 +23,9 @@ case "$FILE_EXT" in
     "py")
         if [[ $FILE_NAME =~ test_* ]]; then
             if [[ -d .tox ]]; then  # We have some tox environments.
-                if [[ -d .tox/py36 ]]; then    # Prefer 3.6
+                if [[ -d .tox/py37 ]]; then    # Prefer 3.7
+                    TOXENV=.tox/py37
+                elif [[ -d .tox/py36 ]]; then    # Prefer 3.6
                     TOXENV=.tox/py36
                 elif [[ -d .tox/py35 ]]; then    # then 3.5
                     TOXENV=.tox/py35
