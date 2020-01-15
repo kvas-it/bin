@@ -3,6 +3,10 @@
 # Quickly commit the changes in current repo (git) and push them to all
 # remotes. I use this script for notes repositories.
 
+if [ "$1" != "" ]; then
+    cd "$1"
+fi
+
 git status
 
 if git commit -a -m 'checkpoint'; then
