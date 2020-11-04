@@ -1,0 +1,4 @@
+#!/bin/sh
+
+export TERM=screen-256color
+nvim $*
