@@ -61,7 +61,7 @@ case "$FILE_EXT" in
             . "$TOXENV/bin/activate"
             run $PYTEST $FILE_PATH
         else
-            run python $FILE_PATH
+            run python3 $FILE_PATH
         fi
         ;;
     "hs")

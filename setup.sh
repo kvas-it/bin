@@ -10,7 +10,7 @@ for file in `ls`; do
     if [ ! -x $file ]; then
         continue
     fi
-    if [ "setup.sh" == $file ]; then
+    if [[ $file == *.sh ]]; then
         continue
     fi
     if [ -e $BIN/$file ]; then
