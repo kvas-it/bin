@@ -1,5 +1,28 @@
 #!/bin/bash
 
+function toxenv {
+    env=$1
+    for try in py38 py37 py36 py35 py27; do
+        if [ "$env" == "" -a -d .tox/$try ]; then
+            env=$try
+        fi
+    done
+    if [ ! -d ".tox/$env" ]; then
+        echo "No virtualenv found at .tox/$env"
+        return 1
+    fi
+    source ".tox/$env/bin/activate"
+    if [ -f setup.py ]; then
+        name=$(python setup.py --name)
+        pip uninstall -yq $name
+        python setup.py -q develop
+        echo "Activated $env and installed $name in development mode"
+    else
+        export PYTHONPATH=`pwd`
+        echo "Activated $env and set PYTHONPATH to $PYTHONPATH"
+    fi
+}
+
 if [ x$1 == x ]; then
     echo "usage: vimrun FILE"
     exit 1
@@ -10,6 +33,7 @@ if [[ $1 =~ /* ]]; then
 else
     FILE_PATH=`pwd`/$1 # Relative path
 fi
+shift
 
 FILE_NAME=`basename $FILE_PATH`
 FILE_EXT=${FILE_NAME##*.}
@@ -22,50 +46,18 @@ run() {
 case "$FILE_EXT" in
     "py")
         if [[ $FILE_NAME =~ test_* ]]; then
-            if [[ -d .tox ]]; then  # We have some tox environments.
-                if [[ -d .tox/py37 ]]; then    # Prefer 3.7
-                    TOXENV=.tox/py37
-                elif [[ -d .tox/py36 ]]; then    # Prefer 3.6
-                    TOXENV=.tox/py36
-                elif [[ -d .tox/py35 ]]; then    # then 3.5
-                    TOXENV=.tox/py35
-                elif [[ -d .tox/py27 ]]; then  # then 2.7
-                    TOXENV=.tox/py27
-                else                           # then whatever...
-                    TOXENV="$(ls -d .tox/py* | head -1)"
-                fi
-
-                PIP="$TOXENV/bin/pip"
-                PYTHON="$TOXENV/bin/python"
-
-                if [ -f setup.py ]; then
-                    name=$("$PYTHON" setup.py --name)
-                    echo "$PIP" show "$name"
-                    if "$PIP" freeze | grep "$name" | grep -q -v ==; then
-                        echo "$name already installed in dev mode"
-                    else
-                        echo "Installing $name in dev mode"
-                        "$PIP" uninstall -y "$name"
-                        "$PYTHON" setup.py -q develop
-                    fi
-                else
-                    export PYTHONPATH="$(pwd -P)"
-                    echo "Activated $env and set PYTHONPATH to $PYTHONPATH"
-                fi
-
-                PYTEST="$TOXENV/bin/pytest"
+            if toxenv; then
+                run pytest $FILE_PATH
+                deactivate
             else
-                PYTEST=pytest
+                run pytest $FILE_PATH
             fi
-
-            . "$TOXENV/bin/activate"
-            run $PYTEST $FILE_PATH
         else
-            run python3 $FILE_PATH
+            run python3 $FILE_PATH $*
         fi
         ;;
     "hs")
-        run runhaskell $FILE_PATH
+        run runhaskell $FILE_PATH $*
         ;;
     "rs")
         dir=$(dirname "$FILE_PATH")
@@ -96,7 +88,7 @@ case "$FILE_EXT" in
         ;;
     *)
         if [ -x $FILE_PATH ]; then
-            run $FILE_PATH
+            run $FILE_PATH $*
         else
             echo "Don't know how to run $FILE_PATH"
         fi
